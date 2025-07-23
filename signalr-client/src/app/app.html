@@ -1,0 +1,37 @@
+<div class="chat-container">
+  <h1>SignalR Chat Demo</h1>
+  
+  <div class="connection-status">
+    Status: <span [class]="isConnected ? 'connected' : 'disconnected'">
+      {{ isConnected ? 'Connected' : 'Disconnected' }}
+    </span>
+  </div>
+
+  <div class="server-selector">
+    <button (click)="switchServer('http://localhost:5001')" 
+            [class.active]="serverUrl === 'http://localhost:5001'">
+      Server 1 (Port 5001)
+    </button>
+    <button (click)="switchServer('http://localhost:5002')" 
+            [class.active]="serverUrl === 'http://localhost:5002'">
+      Server 2 (Port 5002)
+    </button>
+  </div>
+
+  <div class="input-section">
+    <input [(ngModel)]="user" placeholder="Your name" class="user-input">
+    <input [(ngModel)]="message" placeholder="Type your message..." 
+           (keyup.enter)="sendMessage()" class="message-input">
+    <button (click)="sendMessage()" [disabled]="!isConnected || !user || !message">
+      Send
+    </button>
+  </div>
+
+  <div class="messages">
+    <div *ngFor="let msg of messages" class="message">
+      {{ msg }}
+    </div>
+  </div>
+</div>
+
+

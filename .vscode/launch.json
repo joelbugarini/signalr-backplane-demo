@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Replica1",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/SignalRServer/bin/Debug/net9.0/SignalRServer.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/SignalRServer",
+      "env": {
+        "ASPNETCORE_URLS": "http://localhost:80"
+      }
+    },
+    {
+      "name": "Replica2",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/SignalRServer/bin/Debug/net9.0/SignalRServer.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/SignalRServer",
+      "env": {
+        "ASPNETCORE_URLS": "http://localhost:80"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Both Replicas",
+      "configurations": ["Replica1", "Replica2"]
+    }
+  ]
+} 
