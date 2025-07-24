@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add CORS for Angular client
@@ -15,9 +18,11 @@ builder.Services.AddCors(options =>
 // Add HttpContextAccessor for ChatHub
 builder.Services.AddHttpContextAccessor();
 
-// Configure SignalR with Redis backplane
-var redisConnection = builder.Configuration["REDIS_CONNECTION"] ?? "localhost:6379";
-builder.Services.AddSignalR().AddStackExchangeRedis(redisConnection);
+// Bind SignalRConfiguration section
+builder.Services.Configure<SignalRConfiguration>(builder.Configuration.GetSection("SignalRConfiguration"));
+
+// Configure SignalR with RabbitMQ backplane (demo/testing only)
+builder.Services.AddSignalR().AddRabbitMQ();
 
 var app = builder.Build();
 
@@ -28,4 +33,14 @@ app.UseCors("AllowAngularClient");
 app.MapHub<ChatHub>("/chatHub");
 
 app.Run();
+
+// Extension method for AddRabbitMQ
+public static class SignalRBuilderExtensions
+{
+    public static ISignalRServerBuilder AddRabbitMQ(this ISignalRServerBuilder builder)
+    {
+        builder.Services.AddSingleton(typeof(HubLifetimeManager<>), typeof(RabbitMqHubLifetimeManager<>));
+        return builder;
+    }
+}
  
