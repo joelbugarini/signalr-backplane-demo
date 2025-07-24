@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as signalR from '@microsoft/signalr';
@@ -11,15 +11,17 @@ import * as signalR from '@microsoft/signalr';
   styleUrl: './app.css'
 })
 export class App implements OnInit, OnDestroy {
+  // SignalR connection
   private hubConnection: signalR.HubConnection | null = null;
   
+  // UI state
   user = '';
   message = '';
   messages: string[] = [];
   isConnected = false;
-  serverUrl = 'http://localhost:5001'; // Default to first replica
-
-  constructor(private cdr: ChangeDetectorRef) {}
+  
+  // Current server URL (simulates load balancing)
+  serverUrl = 'http://localhost:5001';
 
   ngOnInit() {
     this.connectToSignalR();
@@ -31,22 +33,28 @@ export class App implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Connect to SignalR hub
+   * This demonstrates the backplane: messages sent to ANY server 
+   * will be received by ALL clients via Redis
+   */
   connectToSignalR() {
+    // Create connection to the current server
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(`${this.serverUrl}/chatHub`)
       .build();
 
+    // Listen for messages from ANY server (backplane magic!)
     this.hubConnection.on('ReceiveMessage', (user: string, message: string, serverInfo: string) => {
       const messageText = `[${serverInfo}] ${user}: ${message}`;
       this.messages.push(messageText);
-      // Force change detection to update the UI immediately
-      this.cdr.detectChanges();
     });
 
+    // Start connection
     this.hubConnection.start()
       .then(() => {
         this.isConnected = true;
-        console.log('Connected to SignalR hub via WebSocket');
+        console.log(`Connected to SignalR hub at ${this.serverUrl}`);
       })
       .catch(err => {
         console.error('Error connecting to SignalR hub:', err);
@@ -54,9 +62,14 @@ export class App implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Send message to current server
+   * The backplane ensures ALL clients receive this message,
+   * regardless of which server they're connected to
+   */
   sendMessage() {
     if (this.hubConnection && this.isConnected && this.user && this.message) {
-      // Don't add message locally - let the server broadcast it back
+      // Send to current server - backplane will distribute to all servers
       this.hubConnection.invoke('SendMessage', this.user, this.message)
         .catch(err => {
           console.error('Error sending message:', err);
@@ -66,12 +79,20 @@ export class App implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Switch to a different server (simulates load balancing)
+   * This demonstrates that messages flow through the backplane
+   * regardless of which server you connect to
+   */
   switchServer(url: string) {
     this.serverUrl = url;
-    // Keep message history when switching servers
+    
+    // Disconnect from current server
     if (this.hubConnection) {
       this.hubConnection.stop();
     }
+    
+    // Connect to new server
     this.connectToSignalR();
   }
 }

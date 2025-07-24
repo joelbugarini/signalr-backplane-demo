@@ -1,5 +1,5 @@
 <div class="chat-container">
-  <h1>SignalR Chat Demo</h1>
+  <h1>SignalR Backplane Demo</h1>
   
   <div class="connection-status">
     Status: <span [class]="isConnected ? 'connected' : 'disconnected'">
@@ -10,14 +10,14 @@
   </div>
 
   <div class="server-selector">
-    <p><em>Simulate connecting to different servers (load balancing):</em></p>
+    <p><em>Backplane Demo: Switch between servers to see messages flow through Redis</em></p>
     <button (click)="switchServer('http://localhost:5001')" 
             [class.active]="serverUrl === 'http://localhost:5001'">
-      Simulate Server 1 (Port 5001)
+      Server 1 (Port 5001)
     </button>
     <button (click)="switchServer('http://localhost:5002')" 
             [class.active]="serverUrl === 'http://localhost:5002'">
-      Simulate Server 2 (Port 5002)
+      Server 2 (Port 5002)
     </button>
   </div>
 
