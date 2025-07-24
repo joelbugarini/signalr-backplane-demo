@@ -1,8 +1,8 @@
-# SignalR Backplane Example: Multi-Server Real-Time Messaging
+# SignalR Backplane Demo: Multi-Server Real-Time Messaging
 
 ## What is SignalR Backplane?
 
-SignalR is a library for ASP.NET (and ASP.NET Core) that enables real-time web functionality. In a multi-server environment (e.g., load-balanced web servers), SignalR needs a way to coordinate messages between servers so that all clients receive messages, regardless of which server they’re connected to. This coordination is called a backplane.
+SignalR is a library for ASP.NET (and ASP.NET Core) that enables real-time web functionality. In a multi-server environment (e.g., load-balanced web servers), SignalR needs a way to coordinate messages between servers so that all clients receive messages, regardless of which server they're connected to. This coordination is called a backplane.
 
 **Common backplane options:**
 - Redis (most popular)
@@ -11,7 +11,7 @@ SignalR is a library for ASP.NET (and ASP.NET Core) that enables real-time web f
 
 ## Project Structure
 
-This example demonstrates:
+This demo demonstrates:
 - A single C# Web API server project with SignalR enabled and using a shared backplane (e.g., Redis).
 - Multiple replicas (instances) of the server can be run, each connecting to the same Redis backplane.
 - One Angular client that connects to the SignalR hub and can send/receive messages, regardless of which server instance it hits.
@@ -47,8 +47,8 @@ docker run -d -p 6379:6379 --name redis redis
 #### 1. Create the project
 
 ```bash
-dotnet new webapi -n SignalRServer
-cd SignalRServer
+dotnet new webapi -n SignalRBackplaneDemo.Server
+cd SignalRBackplaneDemo.Server
 dotnet add package Microsoft.AspNetCore.SignalR
 dotnet add package Microsoft.AspNetCore.SignalR.StackExchangeRedis
 ```
@@ -110,8 +110,8 @@ Each instance is a replica, and all are connected to the same Redis backplane.
 #### 1. Create Angular app
 
 ```bash
-ng new signalr-client
-cd signalr-client
+ng new signalr-backplane-demo-client
+cd signalr-backplane-demo-client
 npm install @microsoft/signalr
 ```
 
@@ -167,7 +167,7 @@ export class AppComponent implements OnInit {
 
 - When a client sends a message to any server replica, SignalR uses Redis to publish the message.
 - All other server replicas receive the message from Redis and forward it to their connected clients.
-- This ensures all clients, regardless of which server instance they’re connected to, receive the same messages.
+- This ensures all clients, regardless of which server instance they're connected to, receive the same messages.
 
 ---
 

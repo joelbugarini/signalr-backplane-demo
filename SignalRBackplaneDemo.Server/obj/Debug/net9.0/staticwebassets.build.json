@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "K8tZncBkfN3vKwMwuONgeKuN3ZCbXHj1JInkIUPY7OA=",
+  "Source": "SignalRBackplaneDemo.Server",
+  "BasePath": "_content/SignalRBackplaneDemo.Server",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

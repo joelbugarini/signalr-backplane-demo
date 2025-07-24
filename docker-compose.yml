@@ -1,37 +1,41 @@
+name: signalr-backplane-demo
 version: '3.8'
 services:
-  redis:
+  redis-backplane:
     image: redis:latest
-    container_name: redis
+    container_name: signalr-backplane-demo-redis
     ports:
       - "6379:6379"
-  signalr1:
+  signalr-backplane-demo-server-1:
     build:
-      context: ./SignalRServer
+      context: ./SignalRBackplaneDemo.Server
+    container_name: signalr-backplane-demo-server-1
     environment:
       - ASPNETCORE_URLS=http://0.0.0.0:80
       - ASPNETCORE_ENVIRONMENT=Development
-      - REDIS_CONNECTION=redis:6379
+      - REDIS_CONNECTION=redis-backplane:6379
     depends_on:
-      - redis
+      - redis-backplane
     ports:
       - "5001:80"
-  signalr2:
+  signalr-backplane-demo-server-2:
     build:
-      context: ./SignalRServer
+      context: ./SignalRBackplaneDemo.Server
+    container_name: signalr-backplane-demo-server-2
     environment:
       - ASPNETCORE_URLS=http://0.0.0.0:80
       - ASPNETCORE_ENVIRONMENT=Development
-      - REDIS_CONNECTION=redis:6379
+      - REDIS_CONNECTION=redis-backplane:6379
     depends_on:
-      - redis
+      - redis-backplane
     ports:
       - "5002:80"
-  angular-client:
+  signalr-backplane-demo-client:
     build:
-      context: ./signalr-client
+      context: ./signalr-backplane-demo-client
+    container_name: signalr-backplane-demo-client
     depends_on:
-      - signalr1
-      - signalr2
+      - signalr-backplane-demo-server-1
+      - signalr-backplane-demo-server-2
     ports:
       - "4200:80" 
