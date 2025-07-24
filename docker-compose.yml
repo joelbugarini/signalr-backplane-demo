@@ -1,5 +1,4 @@
 name: signalr-backplane-demo
-version: '3.8'
 services:
   redis-backplane:
     image: redis:latest
