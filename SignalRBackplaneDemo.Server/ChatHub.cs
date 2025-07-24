@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.SignalR;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
 public class ChatHub : Hub
@@ -13,16 +12,11 @@ public class ChatHub : Hub
 
     public async Task SendMessage(string user, string message)
     {
-        // Get the server port from the current request
+        // Get the server port to demonstrate which server instance received the message
         var serverPort = _httpContextAccessor.HttpContext?.Request.Host.Port ?? 0;
         var serverInfo = $"Server {serverPort}";
         
+        // Broadcast message to all clients with server info
         await Clients.All.SendAsync("ReceiveMessage", user, message, serverInfo);
-    }
-
-    public Task<string> GetReplicaId()
-    {
-        // Use the machine name as the replica identifier
-        return Task.FromResult(System.Environment.MachineName);
     }
 } 

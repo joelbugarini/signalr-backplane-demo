@@ -42,3 +42,4 @@ C:\Users\joel\workplace\signalr\SignalRBackplaneDemo.Server\obj\Debug\net9.0\ref
 C:\Users\joel\workplace\signalr\SignalRBackplaneDemo.Server\obj\Debug\net9.0\SignalRBackplaneDemo.Server.pdb
 C:\Users\joel\workplace\signalr\SignalRBackplaneDemo.Server\obj\Debug\net9.0\SignalRBackplaneDemo.Server.genruntimeconfig.cache
 C:\Users\joel\workplace\signalr\SignalRBackplaneDemo.Server\obj\Debug\net9.0\ref\SignalRBackplaneDemo.Server.dll
+C:\Users\joel\workplace\signalr\SignalRBackplaneDemo.Server\obj\Debug\net9.0\SignalRBackplaneDemo.Server.sourcelink.json

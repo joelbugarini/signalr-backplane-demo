@@ -15,33 +15,17 @@ builder.Services.AddCors(options =>
 // Add HttpContextAccessor for ChatHub
 builder.Services.AddHttpContextAccessor();
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-// Use environment variable for Redis connection if available
+// Configure SignalR with Redis backplane
 var redisConnection = builder.Configuration["REDIS_CONNECTION"] ?? "localhost:6379";
 builder.Services.AddSignalR().AddStackExchangeRedis(redisConnection);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-
-// Use CORS
+// Configure the HTTP request pipeline
 app.UseCors("AllowAngularClient");
 
+// Map SignalR hub
 app.MapHub<ChatHub>("/chatHub");
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
  
