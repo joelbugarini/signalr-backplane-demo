@@ -11,13 +11,13 @@
 
   <div class="server-selector">
     <p><em>Backplane Demo: Switch between servers to see messages flow through Redis</em></p>
-    <button (click)="switchServer('http://localhost:5001')" 
-            [class.active]="serverUrl === 'http://localhost:5001'">
-      Server 1 (Port 5001)
+    <button (click)="switchServer(getServerUrl(1))" 
+            [class.active]="serverUrl === getServerUrl(1)">
+      Server 1
     </button>
-    <button (click)="switchServer('http://localhost:5002')" 
-            [class.active]="serverUrl === 'http://localhost:5002'">
-      Server 2 (Port 5002)
+    <button (click)="switchServer(getServerUrl(2))" 
+            [class.active]="serverUrl === getServerUrl(2)">
+      Server 2
     </button>
   </div>
 

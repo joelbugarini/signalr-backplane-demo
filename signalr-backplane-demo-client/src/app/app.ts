@@ -20,8 +20,8 @@ export class App implements OnInit, OnDestroy {
   messages: string[] = [];
   isConnected = false;
   
-  // Current server URL (simulates load balancing)
-  serverUrl = 'http://localhost:5001';
+  // Current server URL (use Docker service names when in containers, localhost for local dev)
+  serverUrl = this.getServerUrl(1);
 
   ngOnInit() {
     this.connectToSignalR();
@@ -30,6 +30,18 @@ export class App implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.hubConnection) {
       this.hubConnection.stop();
+    }
+  }
+
+  /**
+   * Get the correct server URL based on environment
+   */
+  getServerUrl(serverNumber: number): string {
+    const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+    if (isLocalhost) {
+      return `http://localhost:500${serverNumber}`;
+    } else {
+      return `http://signalr-backplane-demo-server-${serverNumber}:80`;
     }
   }
 
