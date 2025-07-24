@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as signalR from '@microsoft/signalr';
@@ -19,6 +19,8 @@ export class App implements OnInit, OnDestroy {
   isConnected = false;
   serverUrl = 'http://localhost:5001'; // Default to first replica
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   ngOnInit() {
     this.connectToSignalR();
   }
@@ -34,14 +36,17 @@ export class App implements OnInit, OnDestroy {
       .withUrl(`${this.serverUrl}/chatHub`)
       .build();
 
-    this.hubConnection.on('ReceiveMessage', (user: string, message: string) => {
-      this.messages.push(`${user}: ${message}`);
+    this.hubConnection.on('ReceiveMessage', (user: string, message: string, serverInfo: string) => {
+      const messageText = `[${serverInfo}] ${user}: ${message}`;
+      this.messages.push(messageText);
+      // Force change detection to update the UI immediately
+      this.cdr.detectChanges();
     });
 
     this.hubConnection.start()
       .then(() => {
         this.isConnected = true;
-        console.log('Connected to SignalR hub');
+        console.log('Connected to SignalR hub via WebSocket');
       })
       .catch(err => {
         console.error('Error connecting to SignalR hub:', err);
@@ -51,14 +56,19 @@ export class App implements OnInit, OnDestroy {
 
   sendMessage() {
     if (this.hubConnection && this.isConnected && this.user && this.message) {
+      // Don't add message locally - let the server broadcast it back
       this.hubConnection.invoke('SendMessage', this.user, this.message)
-        .catch(err => console.error('Error sending message:', err));
+        .catch(err => {
+          console.error('Error sending message:', err);
+        });
+      
       this.message = '';
     }
   }
 
   switchServer(url: string) {
     this.serverUrl = url;
+    // Keep message history when switching servers
     if (this.hubConnection) {
       this.hubConnection.stop();
     }

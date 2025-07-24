@@ -5,16 +5,19 @@
     Status: <span [class]="isConnected ? 'connected' : 'disconnected'">
       {{ isConnected ? 'Connected' : 'Disconnected' }}
     </span>
+    <br>
+    <small>Connected to: {{ serverUrl }}</small>
   </div>
 
   <div class="server-selector">
+    <p><em>Simulate connecting to different servers (load balancing):</em></p>
     <button (click)="switchServer('http://localhost:5001')" 
             [class.active]="serverUrl === 'http://localhost:5001'">
-      Server 1 (Port 5001)
+      Simulate Server 1 (Port 5001)
     </button>
     <button (click)="switchServer('http://localhost:5002')" 
             [class.active]="serverUrl === 'http://localhost:5002'">
-      Server 2 (Port 5002)
+      Simulate Server 2 (Port 5002)
     </button>
   </div>
 
