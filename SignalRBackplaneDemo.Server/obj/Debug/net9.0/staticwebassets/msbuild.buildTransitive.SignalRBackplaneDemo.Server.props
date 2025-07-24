@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\buildMultiTargeting\SignalRBackplaneDemo.Server.props" />
-</Project>
