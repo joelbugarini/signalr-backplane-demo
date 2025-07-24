@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as signalR from '@microsoft/signalr';
@@ -22,6 +22,8 @@ export class App implements OnInit, OnDestroy {
   
   // Current server URL (use Docker service names when in containers, localhost for local dev)
   serverUrl = this.getServerUrl(1);
+
+  constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.connectToSignalR();
@@ -59,7 +61,8 @@ export class App implements OnInit, OnDestroy {
     // Listen for messages from ANY server (backplane magic!)
     this.hubConnection.on('ReceiveMessage', (user: string, message: string, serverInfo: string) => {
       const messageText = `[${serverInfo}] ${user}: ${message}`;
-      this.messages.push(messageText);
+      this.messages = [...this.messages, messageText]; // Create new array reference
+      this.cdr.detectChanges(); // Force change detection
     });
 
     // Start connection
@@ -67,10 +70,12 @@ export class App implements OnInit, OnDestroy {
       .then(() => {
         this.isConnected = true;
         console.log(`Connected to SignalR hub at ${this.serverUrl}`);
+        this.cdr.detectChanges();
       })
       .catch(err => {
         console.error('Error connecting to SignalR hub:', err);
         this.isConnected = false;
+        this.cdr.detectChanges();
       });
   }
 
