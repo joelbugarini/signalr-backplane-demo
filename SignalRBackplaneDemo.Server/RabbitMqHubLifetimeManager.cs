@@ -14,7 +14,7 @@ public class RabbitMqHubLifetimeManager<THub> : HubLifetimeManager<THub>, IDispo
     private readonly IConnection _connection;
     private readonly IModel _channel;
     private readonly string _exchangeName = "signalr_backplane";
-    private readonly Channel<(string method, object[] args)> _localMessages = Channel.CreateUnbounded<(string, object[])>();
+    private readonly Channel<(string method, object[] args, List<string> targetConnectionIds)> _localMessages = Channel.CreateUnbounded<(string, object[], List<string>)>();
     private readonly CancellationTokenSource _cts = new();
     private readonly Task _localBroadcastTask;
     private readonly ConcurrentDictionary<string, HubConnectionContext> _connections = new();
@@ -37,8 +37,8 @@ public class RabbitMqHubLifetimeManager<THub> : HubLifetimeManager<THub>, IDispo
             var msg = JsonSerializer.Deserialize<BackplaneMessage>(body);
             if (msg != null)
             {
-                // Enqueue for local broadcast
-                await _localMessages.Writer.WriteAsync((msg.Method, msg.Args));
+                // Enqueue for local broadcast, now with targetConnectionIds
+                await _localMessages.Writer.WriteAsync((msg.Method, msg.Args, msg.TargetConnectionIds));
             }
         };
         _channel.BasicConsume(queue: queueName, autoAck: true, consumer: consumer);
@@ -61,7 +61,6 @@ public class RabbitMqHubLifetimeManager<THub> : HubLifetimeManager<THub>, IDispo
 
     public override Task SendAllAsync(string methodName, object[] args, CancellationToken cancellationToken = default)
     {
-        // Only publish to RabbitMQ, do NOT broadcast locally here
         var msg = new BackplaneMessage { Method = methodName, Args = args };
         var body = JsonSerializer.SerializeToUtf8Bytes(msg);
         _channel.BasicPublish(exchange: _exchangeName, routingKey: "", body: body);
@@ -100,12 +99,18 @@ public class RabbitMqHubLifetimeManager<THub> : HubLifetimeManager<THub>, IDispo
 
     public override Task SendConnectionAsync(string connectionId, string methodName, object[] args, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var msg = new BackplaneMessage { Method = methodName, Args = args, TargetConnectionIds = new List<string> { connectionId } };
+        var body = JsonSerializer.SerializeToUtf8Bytes(msg);
+        _channel.BasicPublish(exchange: _exchangeName, routingKey: "", body: body);
+        return Task.CompletedTask;
     }
 
     public override Task SendConnectionsAsync(IReadOnlyList<string> connectionIds, string methodName, object[] args, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var msg = new BackplaneMessage { Method = methodName, Args = args, TargetConnectionIds = connectionIds?.ToList() };
+        var body = JsonSerializer.SerializeToUtf8Bytes(msg);
+        _channel.BasicPublish(exchange: _exchangeName, routingKey: "", body: body);
+        return Task.CompletedTask;
     }
 
     public override Task AddToGroupAsync(string connectionId, string groupName, CancellationToken cancellationToken = default)
@@ -121,11 +126,24 @@ public class RabbitMqHubLifetimeManager<THub> : HubLifetimeManager<THub>, IDispo
     // Local broadcast loop: send received messages to all local clients
     private async Task LocalBroadcastLoop()
     {
-        await foreach (var (method, args) in _localMessages.Reader.ReadAllAsync(_cts.Token))
+        await foreach (var (method, args, targetConnectionIds) in _localMessages.Reader.ReadAllAsync(_cts.Token))
         {
-            foreach (var connection in _connections.Values)
+            if (targetConnectionIds != null && targetConnectionIds.Count > 0)
             {
-                await connection.WriteAsync(new InvocationMessage(method, args));
+                foreach (var connectionId in targetConnectionIds)
+                {
+                    if (_connections.TryGetValue(connectionId, out var connection))
+                    {
+                        await connection.WriteAsync(new InvocationMessage(method, args));
+                    }
+                }
+            }
+            else
+            {
+                foreach (var connection in _connections.Values)
+                {
+                    await connection.WriteAsync(new InvocationMessage(method, args));
+                }
             }
         }
     }
@@ -149,6 +167,7 @@ public class RabbitMqHubLifetimeManager<THub> : HubLifetimeManager<THub>, IDispo
     {
         public string Method { get; set; }
         public object[] Args { get; set; }
+        public List<string> TargetConnectionIds { get; set; }
     }
 }
 
